@@ -1181,7 +1181,7 @@ function setLang(){
   $('#pmenu').setAttribute('aria-label',tr('art'));
   const pp=$('#ppause');if(pp.dataset.s)pp.setAttribute('aria-label',tr(pp.dataset.s));
   $$('[data-more]').forEach(b=>{b.textContent=tr('more')});$('#cue').setAttribute('aria-label',tr('down'));$('#top').setAttribute('aria-label',tr('up'));$('#mail').setAttribute('aria-label',tr('mail'));$('#frk').setAttribute('aria-label',tr('friends'));
-  $('#uni').href=LANG=='de'?'https://uni-tuebingen.de/':'https://uni-tuebingen.de/en/';
+  $('#uni').href='https://by0628.github.io/about-you-public/';
   $$('#marks [data-b]').forEach(a=>a.setAttribute('aria-label',tr('b_'+a.dataset.b)));$('#marks').setAttribute('aria-label',tr('bld'));
   $('#lang').setAttribute('aria-label',tr('lang'));$('#mode').setAttribute('aria-label',tr('dark'));
   $$('#langs [data-l]').forEach(b=>{if(b.dataset.l==LANG)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current')});
@@ -1871,6 +1871,7 @@ function frame(now){
   if(!glon&&(intro>=1||warm>=3&&flashed())){glon=true;root.classList.add('glon')}
 }
 requestAnimationFrame(frame);
+setTimeout(()=>{if(!glon){glon=true;root.classList.add('glon')}},12000);
 }
 {let began=false;const go=()=>{if(!began){began=true;boot()}};requestAnimationFrame(()=>setTimeout(go,0));setTimeout(go,1200)}
 })();
