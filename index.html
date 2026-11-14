@@ -526,9 +526,34 @@ html.post #pmenu{padding-right:calc(max(8px,env(safe-area-inset-right,0px)) + 80
 }
 /* Fonts, all SIL Open Font License: Fusion Pixel (TakWolf), Noto Serif SC (Google), Instrument Serif (Instrument), Monocraft (IdreesInc). */
 </style>
+<style id="fx-style">
+/* ===== 2026-11-14 定制：透气排版 + 雾气/星点背景（删掉本块与 #fxbg 层即全部还原） ===== */
+/* 透气：拉开窗格之间的距离，加大窗内留白 */
+#desk{gap:76px;padding-block:13vh 15vh}
+.lane{gap:76px}
+#desk .win>.body{padding:20px}
+@media (max-width:699px){#desk{gap:56px}.lane{gap:56px}#desk .win>.body{padding:16px}}
+/* 背景层：两团缓缓漂移的雾 + 一层星点，位于 WebGL 场景之上、内容之下 */
+#fxbg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;opacity:0;animation:fxin 1.6s ease .35s forwards}
+@keyframes fxin{to{opacity:1}}
+#fxbg .fxmist{position:absolute;border-radius:50%;will-change:transform}
+#fxbg .a{width:120vmax;height:120vmax;left:-35vmax;top:-45vmax;background:radial-gradient(circle at 50% 50%,rgba(127,217,228,.20),rgba(127,217,228,0) 62%);animation:fxdrift1 74s ease-in-out infinite alternate}
+#fxbg .b{width:110vmax;height:110vmax;right:-38vmax;bottom:-50vmax;background:radial-gradient(circle at 50% 50%,rgba(148,178,199,.16),rgba(148,178,199,0) 62%);animation:fxdrift2 96s ease-in-out infinite alternate}
+@keyframes fxdrift1{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(9vmax,5vmax,0) scale(1.12)}}
+@keyframes fxdrift2{from{transform:translate3d(0,0,0) scale(1.08)}to{transform:translate3d(-8vmax,-6vmax,0) scale(1)}}
+#fxstars{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:.5}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) #fxstars{opacity:1}:root:not([data-theme=light]) #fxbg .a{background:radial-gradient(circle at 50% 50%,rgba(64,120,150,.28),rgba(64,120,150,0) 62%)}:root:not([data-theme=light]) #fxbg .b{background:radial-gradient(circle at 50% 50%,rgba(40,70,110,.24),rgba(40,70,110,0) 62%)}}
+:root[data-theme=dark] #fxstars{opacity:1}
+:root[data-theme=dark] #fxbg .a{background:radial-gradient(circle at 50% 50%,rgba(64,120,150,.28),rgba(64,120,150,0) 62%)}
+:root[data-theme=dark] #fxbg .b{background:radial-gradient(circle at 50% 50%,rgba(40,70,110,.24),rgba(40,70,110,0) 62%)}
+html.dir #fxbg,html.post #fxbg{opacity:0;transition:opacity .45s ease}
+html.gone #fxbg,html.dirgone #fxbg{visibility:hidden}
+@media (prefers-reduced-motion:reduce){#fxbg{animation:none;opacity:1}#fxbg .a,#fxbg .b{animation:none}}
+</style>
 <script>(()=>{const r=document.documentElement,L={zh:'zh-Hans',en:'en',ja:'ja',de:'de',fr:'fr',es:'es',ko:'ko',la:'la'};r.classList.add('top');let t=null,l=null;try{t=localStorage.getItem('theme');l=localStorage.getItem('lang')}catch(e){}if(t=='dark'||t=='light')r.dataset.theme=t;if(!L[l]){l='en';for(const x of(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||''])){const k=String(x).slice(0,2).toLowerCase();if(L[k]){l=k;break}}}r.lang=L[l]})()</script>
 
 <canvas id="gl" aria-hidden="true"></canvas>
+<div id="fxbg" aria-hidden="true"><div class="fxmist a"></div><div class="fxmist b"></div><canvas id="fxstars"></canvas></div>
 <div id="page">
 <header id="hero">
   <h1 data-n="/Aurevny">/Aurevny</h1>
@@ -1892,4 +1917,43 @@ setTimeout(()=>{if(!glon){glon=true;root.classList.add('glon')}},12000);
 }
 {let began=false;const go=()=>{if(!began){began=true;boot()}};requestAnimationFrame(()=>setTimeout(go,0));setTimeout(go,1200)}
 })();
+</script>
+<script>
+/* 雾中星点：轻量 2D 星空，随主题明暗自动调整（fx 定制，2026-11-14） */
+(()=>{try{
+  const cv=document.getElementById('fxstars');if(!cv)return;
+  const ctx=cv.getContext('2d');if(!ctx)return;
+  const root=document.documentElement;
+  const mq=matchMedia('(prefers-color-scheme: dark)');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const DPR=Math.min(devicePixelRatio||1,1.5);
+  let W=0,H=0,stars=[],dark=false;
+  function mode(){dark=(root.dataset.theme==='dark')||(!root.dataset.theme&&mq.matches);}
+  function size(){
+    W=innerWidth;H=innerHeight;
+    cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    const n=Math.round(Math.min(150,Math.max(50,W*H/16000)));
+    stars=Array.from({length:n},()=>({x:Math.random()*W,y:Math.random()*H,r:.6+Math.random()*1.3,p:Math.random()*6.283,s:.4+Math.random()*1.1,dx:(Math.random()-.5)*.014,dy:(Math.random()-.5)*.010}));
+  }
+  function draw(t){
+    ctx.clearRect(0,0,W,H);
+    const col=dark?'210,235,255':'70,130,150';
+    for(const s of stars){
+      const a=(dark?.34:.16)+.30*(0.5+0.5*Math.sin(s.p+t*.001*s.s));
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,6.283);
+      ctx.fillStyle='rgba('+col+','+a.toFixed(3)+')';ctx.fill();
+    }
+  }
+  function tick(t){
+    for(const s of stars){s.x+=s.dx;s.y+=s.dy;if(s.x<-4)s.x=W+4;if(s.x>W+4)s.x=-4;if(s.y<-4)s.y=H+4;if(s.y>H+4)s.y=-4;}
+    draw(t||0);
+    requestAnimationFrame(tick);
+  }
+  mode();size();
+  addEventListener('resize',()=>{size();if(reduced)draw(0);});
+  if(mq.addEventListener)mq.addEventListener('change',()=>{mode();if(reduced)draw(0);});
+  new MutationObserver(()=>{mode();if(reduced)draw(0);}).observe(root,{attributes:true,attributeFilter:['data-theme']});
+  if(reduced){draw(0);}else{requestAnimationFrame(tick);}
+}catch(e){}})();
 </script>
