@@ -531,6 +531,8 @@ html.post #pmenu{padding-right:calc(max(8px,env(safe-area-inset-right,0px)) + 80
 /* 透气：拉开窗格之间的距离，加大窗内留白 */
 #desk{gap:76px;padding-block:13vh 15vh}
 .lane{gap:76px}
+/* 不叠压：模板原本把「项目」窗往上拉 100~130px 压住「站点」窗（设计如此），用户嫌夹，取消 */
+#papers{margin-top:0}
 #desk .win>.body{padding:20px}
 @media (max-width:699px){#desk{gap:56px}.lane{gap:56px}#desk .win>.body{padding:16px}}
 /* 背景层：两团缓缓漂移的雾 + 一层星点，位于 WebGL 场景之上、内容之下 */
